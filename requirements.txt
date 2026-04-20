@@ -1,0 +1,7 @@
+Flask==3.0.2
+Flask-SQLAlchemy==3.1.1
+Flask-Login==0.6.3
+Werkzeug==3.0.1
+fpdf2==2.7.7
+python-dotenv==1.0.1
+Flask-Migrate==4.1.0
