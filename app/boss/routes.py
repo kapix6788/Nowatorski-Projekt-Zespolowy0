@@ -7,7 +7,6 @@ from app.utils import role_required
 from sqlalchemy import func
 from datetime import datetime
 
-# WIDOK 1: Zarządzanie pracownikami (CRUD Personelu)
 @bp.route('/employees', methods=['GET', 'POST'])
 @login_required
 @role_required('szef')
@@ -49,12 +48,12 @@ def employees():
                 
         return redirect(url_for('boss.employees'))
 
-    # Wyświetla tylko współpracowników bez zwykłych klientów z ulicy
+
+    staff = User.query.filter(User.role.in_(['szef', 'recepcja', 'mechanik'])).all()
+    return render_template('boss/employees.html', employees=staff)
     staff = User.query.filter(User.role.in_(['szef', 'recepcja', 'mechanik'])).all()
     return render_template('boss/employees.html', employees=staff)
 
-
-# WIDOK 2: Katalog Usług i Cennik (CRUD Katalogu)
 @bp.route('/catalog', methods=['GET', 'POST'])
 @login_required
 @role_required('szef')
@@ -88,8 +87,6 @@ def catalog():
     services = ServiceCatalog.query.all()
     return render_template('boss/catalog.html', catalog=services)
 
-
-# WIDOK 3: Panel Analityczny Szefa (Raporty)
 @bp.route('/reports', methods=['GET'])
 @login_required
 @role_required('szef')
