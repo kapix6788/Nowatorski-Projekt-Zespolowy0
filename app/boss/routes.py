@@ -48,6 +48,9 @@ def employees():
                 
         return redirect(url_for('boss.employees'))
 
+
+    staff = User.query.filter(User.role.in_(['szef', 'recepcja', 'mechanik'])).all()
+    return render_template('boss/employees.html', employees=staff)
     staff = User.query.filter(User.role.in_(['szef', 'recepcja', 'mechanik'])).all()
     return render_template('boss/employees.html', employees=staff)
 
