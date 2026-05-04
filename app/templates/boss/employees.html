@@ -1,0 +1,106 @@
+{% extends 'base.html' %}
+
+{% block title %}Panel Zarządzania Kadrą{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col">
+        <h2 class="fw-bold" style="color: var(--dark-color);"><i
+                class="bi bi-briefcase-fill me-2 text-primary"></i>Pracownicy Warsztatu</h2>
+        <p class="text-muted">Lista pracowników</p>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-8">
+        <div class="card shadow-sm border-0 mb-4">
+            <div class="card-header bg-white pt-4 pb-0 border-0">
+                <h5 class="fw-bold"><i class="bi bi-person-lines-fill me-2"></i>Współpracownicy</h5>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Pracownik</th>
+                                <th>Konto Systemowe</th>
+                                <th>Rola</th>
+                                <th class="text-end">Zwolnij</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for emp in employees %}
+                            <tr>
+                                <td><strong>{{ emp.first_name }} {{ emp.last_name }}</strong><br><small
+                                        class="text-muted">{{ emp.email }}</small></td>
+                                <td><code>{{ emp.username }}</code></td>
+                                <td>
+                                    {% if emp.role == 'szef' %}
+                                    <span class="badge bg-danger rounded-pill px-3"><i
+                                            class="bi bi-star-fill me-1"></i>Szef</span>
+                                    {% elif emp.role == 'mechanik' %}
+                                    <span class="badge bg-primary rounded-pill px-3">Mechanik</span>
+                                    {% elif emp.role == 'recepcja' %}
+                                    <span class="badge bg-success rounded-pill px-3">Recepcja</span>
+                                    {% endif %}
+                                </td>
+                                <td class="text-end">
+                                    {% if emp.role != 'szef' %}
+                                    <form action="{{ url_for('boss.employees') }}" method="POST" class="d-inline"
+                                        onsubmit="return confirm('Czy na pewno chcesz usunąć tego pracownika ?');">
+                                        <input type="hidden" name="action" value="delete">
+                                        <input type="hidden" name="employee_id" value="{{ emp.id }}">
+                                        <button type="submit" class="btn btn-sm btn-outline-danger"><i
+                                                class="bi bi-x-circle text-danger"></i></button>
+                                    </form>
+                                    {% else %}
+                                    <button class="btn btn-sm btn-light text-muted" disabled>Szef</button>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <div class="card shadow-sm border-0">
+            <div class="card-body p-4 bg-light">
+                <h5 class="fw-bold mb-3"><i class="bi bi-person-plus-fill me-2 text-primary"></i>Dodaj pracownika</h5>
+                <form action="{{ url_for('boss.employees') }}" method="POST">
+                    <input type="hidden" name="action" value="add">
+                    <div class="mb-3">
+                        <label class="form-label small text-muted">Imię</label>
+                        <input type="text" class="form-control" name="first_name" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label small text-muted">Nazwisko</label>
+                        <input type="text" class="form-control" name="last_name" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label small text-muted">Login</label>
+                        <input type="text" class="form-control" name="username" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label small text-muted">E-mail</label>
+                        <input type="email" class="form-control" name="email" required>
+                    </div>
+                    <div class="mb-4">
+                        <label class="form-label small text-muted">Stanowisko </label>
+                        <select class="form-select border-primary" name="role" required>
+                            <option value="mechanik">Mechanik</option>
+                            <option value="recepcja">Recepcja</option>
+                            <option value="szef">Kierwonik</option>
+                        </select>
+                    </div>
+                    <button type="submit" class="btn btn-primary w-100 py-2 shadow-sm">Utwórz Personel</button>
+                    <div class="mt-2 text-center small text-muted">Domyślne hasło: startowe123</div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
