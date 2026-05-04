@@ -1,0 +1,118 @@
+{% extends 'base.html' %}
+
+{% block title %}Raporty Warsztatu{% endblock %}
+
+{% block content %}
+<div class="row mb-5">
+    <div class="col-md-6 text-md-start">
+        <h2 class="fw-bold"><i class="bi bi-graph-up-arrow me-2 text-primary"></i>Wyniki Biznesowe</h2>
+        <p class="text-muted">Podsumowanie wydajności warsztatu w czasie.</p>
+    </div>
+    <div class="col-md-6 mt-3 mt-md-0 d-flex justify-content-md-end align-items-center">
+        <form method="GET" action="{{ url_for('boss.reports') }}" class="d-flex gap-2 bg-light p-2 rounded border">
+            <input type="date" name="date_from" class="form-control form-control-sm" value="{{ date_from or '' }}" required title="Data od">
+            <input type="date" name="date_to" class="form-control form-control-sm" value="{{ date_to or '' }}" required title="Data do">
+            <button type="submit" class="btn btn-sm btn-primary">Filtruj</button>
+            {% if date_from %}
+                <a href="{{ url_for('boss.reports') }}" class="btn btn-sm btn-outline-secondary">Reset</a>
+            {% endif %}
+        </form>
+    </div>
+</div>
+
+<div class="row mb-5">
+    <div class="col-md-6 col-sm-6 mb-3">
+        <div class="card border-0 shadow-sm text-center h-100"
+            style="background: linear-gradient(135deg, #4361ee 0%, #3a0ca3 100%); color: white;">
+            <div class="card-body p-4">
+                <i class="bi bi-people-fill opacity-50 mb-2" style="font-size: 2.5rem;"></i>
+                <h2 class="fw-bold">{{ stats.clients_count }}</h2>
+                <h6 class="mb-0 fw-light">Obsłużonych Klientów</h6>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-6 col-sm-6 mb-3">
+        <div class="card border-0 shadow-sm text-center h-100"
+            style="background: linear-gradient(135deg, #f72585 0%, #b5179e 100%); color: white;">
+            <div class="card-body p-4">
+                <i class="bi bi-clipboard2-check-fill opacity-50 mb-2" style="font-size: 2.5rem;"></i>
+                <h2 class="fw-bold">{{ stats.period_completed }} / {{ stats.period_total }}</h2>
+                <h6 class="mb-0 fw-light">Zakończone Zlecenia</h6>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-6 mb-3">
+        <div class="card border-0 shadow-sm text-center bg-light h-100">
+            <div class="card-body p-4 d-flex flex-column align-items-center justify-content-center">
+                <i class="bi bi-cash-coin text-success mb-2" style="font-size: 2.5rem;"></i>
+                <h4 class="fw-bold text-dark">{{ stats.period_revenue }} PLN</h4>
+                <p class="small text-muted mb-0">Zarobek w wybranym oknie</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-lg-7 mb-4">
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-white pt-4 pb-0 border-0">
+                <h5 class="fw-bold">Aktywne Zlecenia</h5>
+            </div>
+            <div class="card-body p-4">
+                <div class="table-responsive">
+                    <table class="table align-middle">
+                        <tbody>
+                            {% for ip in in_progress %}
+                            <tr>
+                                <td>
+                                    <div class="fw-bold">{{ ip.vehicle.make }} {{ ip.vehicle.model }}</div>
+                                    <small class="text-muted">Rej: {{ ip.vehicle.license_plate }}</small>
+                                </td>
+                                <td><i class="bi bi-wrench-adjustable me-2 text-primary"></i><strong>{{
+                                        ip.mechanic.first_name }} {{ ip.mechanic.last_name }}</strong></td>
+                                <td class="text-end">
+                                    <span class="badge bg-primary rounded-pill px-3 py-2">W Trakcie</span>
+                                </td>
+                            </tr>
+                            {% else %}
+                            <tr>
+                                <td colspan="3" class="text-center py-4 text-muted">Brak aktywnych zleceń.</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-5 mb-4">
+        <div class="card border-0 shadow-sm h-100 border-top border-danger border-3">
+            <div class="card-header bg-white pt-4 pb-0 border-0">
+                <h5 class="fw-bold">Braki Magazynowe</h5>
+            </div>
+            <div class="card-body p-4">
+                <ul class="list-group list-group-flush">
+                    {% for req in part_reqs %}
+                    <li class="list-group-item px-0 py-2 border-bottom">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <span class="fw-bold text-dark">{{ req.quantity }}x {{ req.part_name }}</span><br>
+                                <small class="text-muted"><i class="bi bi-person me-1"></i>{{ req.mechanic.first_name }} (Zlecenie: #{{ req.repair_order_id }})</small>
+                            </div>
+                            <span class="badge bg-danger">Oczekuje</span>
+                        </div>
+                    </li>
+                    {% else %}
+                    <li class="list-group-item px-0 py-4 border-0 text-center text-muted">
+                        <i class="bi bi-check-circle text-success fs-3 d-block mb-2"></i>Brak zgłoszeń od mechaników. Wszystko mają.
+                    </li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
