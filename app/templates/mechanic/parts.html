@@ -1,0 +1,24 @@
+{% extends 'base.html' %}
+{% block title %}Katalog Magazynowy{% endblock %}
+{% block content %}
+<h2 class="fw-bold mb-4">Stany Magazynowe Części</h2>
+<div class="card shadow-sm border-0">
+    <div class="card-body p-4">
+        <table class="table">
+            <thead><tr><th>Nazwa Części</th><th>Stan (szt.)</th><th>Cena Jednostkowa</th></tr></thead>
+            <tbody>
+                {% for p in parts %}
+                <tr>
+                    <td>{{ p.name }}</td>
+                    <td>
+                        {% if p.stock_quantity > 0 %}<span class="badge bg-success">{{ p.stock_quantity }}</span>
+                        {% else %}<span class="badge bg-danger">Brak</span>{% endif %}
+                    </td>
+                    <td>{{ p.unit_price }} zł</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}
