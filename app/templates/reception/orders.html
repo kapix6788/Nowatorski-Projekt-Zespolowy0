@@ -1,0 +1,214 @@
+{% extends 'base.html' %}
+{% block title %}Zarządzanie Zleceniami{% endblock %}
+{% block content %}
+<div class="row mb-4 align-items-center">
+    <div class="col-md-6">
+        <h2 class="fw-bold mb-0">Wszystkie Zlecenia Warsztatu</h2>
+    </div>
+    <div class="col-md-6">
+        <form method="GET" action="{{ url_for('reception.orders') }}" class="d-flex justify-content-md-end">
+            <div class="input-group" style="max-width: 350px;">
+                <input type="text" class="form-control" name="search" placeholder="Szukaj (nazwisko, imię, nr. rej)" value="{{ search_query }}">
+                <button class="btn btn-primary" type="submit"><i class="bi bi-search"></i> Szukaj</button>
+                {% if search_query %}
+                <a href="{{ url_for('reception.orders') }}" class="btn btn-outline-secondary"><i class="bi bi-x-lg"></i></a>
+                {% endif %}
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="row">
+    <!-- Lewa kolumna - zlecenia -->
+    <div class="col-md-8 col-lg-9 mb-4">
+        <div class="card shadow-sm border-0">
+            <div class="card-body p-0 table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Nr</th>
+                            <th>Data</th>
+                            <th>Pojazd</th>
+                            <th>Klient</th>
+                            <th>Mechanik</th>
+                            <th>Status</th>
+                            <th>Akcje</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for o in orders %}
+                        <tr>
+                            <td class="fw-bold text-muted">#{{ o.id }}</td>
+                            <td>{{ o.created_at.strftime('%Y-%m-%d') }}</td>
+                            <td>
+                                <span class="fw-semibold">{{ o.vehicle.make }} {{ o.vehicle.model }}</span><br>
+                                <small class="text-muted">{{ o.vehicle.license_plate }}</small>
+                            </td>
+                            <td>{{ o.client.first_name }} {{ o.client.last_name }}</td>
+                            <td>
+                                <form action="{{ url_for('reception.update_order', order_id=o.id) }}" method="POST" class="d-flex">
+                                    <select class="form-select form-select-sm" name="mechanic_id" onchange="this.form.submit()" style="min-width: 130px;">
+                                        <option value="">- Przypisz -</option>
+                                        {% for m in mechanics %}
+                                        <option value="{{ m.id }}" {% if o.mechanic_id == m.id %}selected{% endif %}>{{ m.first_name }} {{ m.last_name }}</option>
+                                        {% endfor %}
+                                    </select>
+                                </form>
+                            </td>
+                            <td>
+                                <form action="{{ url_for('reception.update_order', order_id=o.id) }}" method="POST">
+                                    <select class="form-select form-select-sm border-0 shadow-none fw-bold
+                                        {% if o.status == 'oczekujace' %}text-warning{% elif o.status == 'gotowe' %}text-success{% else %}text-primary{% endif %}" 
+                                        name="status" onchange="this.form.submit()">
+                                        <option value="oczekujace" {% if o.status == 'oczekujace' %}selected{% endif %}>Oczekujące</option>
+                                        <option value="w_trakcie" {% if o.status == 'w_trakcie' %}selected{% endif %}>W trakcie</option>
+                                        <option value="gotowe" {% if o.status == 'gotowe' %}selected{% endif %}>Gotowe</option>
+                                        <option value="odebrane" {% if o.status == 'odebrane' %}selected{% endif %}>Odebrane</option>
+                                    </select>
+                                </form>
+                            </td>
+                            <td>
+                                <div class="d-flex gap-1">
+                                    <button class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#editModal{{o.id}}" title="Edytuj Zlecenie"><i class="bi bi-pencil-square"></i></button>
+                                    
+                                    {% if o.status in ['gotowe', 'odebrane'] %}
+                                    <a href="{{ url_for('reception.generate_invoice', order_id=o.id) }}" class="btn btn-sm btn-outline-success" title="Wygeneruj FV"><i class="bi bi-file-earmark-pdf"></i></a>
+                                    {% endif %}
+                                    <form action="{{ url_for('reception.delete_order', order_id=o.id) }}" method="POST" onsubmit="return confirm('Trwale usunąć to zlecenie?');">
+                                        <button type="submit" class="btn btn-sm btn-outline-danger" title="Usuń zlecenie"><i class="bi bi-trash3"></i></button>
+                                    </form>
+                                </div>
+                            </td>
+                        </tr>
+                        
+
+
+                        {% else %}
+                        <tr>
+                            <td colspan="7" class="text-center text-muted py-5">Brak zleceń spełniających kryteria.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Prawa kolumna - formularze -->
+    <div class="col-md-4 col-lg-3">
+        <!-- dodanie zlecenia dla istniejącego auta -->
+        <div class="card shadow-sm border-0 mb-4 border-top border-primary border-3">
+            <div class="card-body">
+                <h6 class="fw-bold mb-3"><i class="bi bi-clipboard-plus me-2 text-primary"></i>Utwórz Zlecenie</h6>
+                <form action="{{ url_for('reception.add_order') }}" method="POST">
+                    
+                    <div class="mb-2">
+                        <label class="form-label small text-muted">Klient</label>
+                        <select class="form-select" id="clientSelect" required>
+                            <option value="">-- Wybierz klienta --</option>
+                            {% for c in clients %}
+                            <option value="{{ c.id }}">{{ c.last_name }} {{ c.first_name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    
+                    <div class="mb-2">
+                        <label class="form-label small text-muted">Pojazd Klienta</label>
+                        <select class="form-select" name="vehicle_id" id="vehicleSelect" required disabled>
+                            <option value="">-- Najpierw wybierz klienta --</option>
+                            {% for v in vehicles %}
+                            <option value="{{ v.id }}" data-owner="{{ v.owner_id }}">{{ v.license_plate }} - {{ v.make }} {{ v.model }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label small text-muted">Opis Zgłoszenia</label>
+                        <textarea class="form-control" name="description" rows="2" required></textarea>
+                    </div>
+                    <button type="submit" class="btn btn-primary btn-sm w-100">Utwórz Zlecenie</button>
+                </form>
+            </div>
+        </div>
+
+        <!-- rejestracja klienta z ulicy (Klient + Auto) -->
+        <div class="card shadow-sm border-0 bg-light">
+            <div class="card-body">
+                <h6 class="fw-bold mb-3"><i class="bi bi-person-plus me-2 text-success"></i>Nowy Klient i Auto</h6>
+                <form action="{{ url_for('reception.add_client_vehicle') }}" method="POST">
+                    <div class="row g-2 mb-2">
+                        <div class="col-6"><input type="text" class="form-control form-control-sm" name="first_name" placeholder="Imię" required></div>
+                        <div class="col-6"><input type="text" class="form-control form-control-sm" name="last_name" placeholder="Nazwisko" required></div>
+                    </div>
+                    <div class="mb-2">
+                        <input type="email" class="form-control form-control-sm" name="email" placeholder="E-mail (Login)" required>
+                    </div>
+                    <div class="mb-2">
+                        <input type="text" class="form-control form-control-sm" name="phone" placeholder="Telefon">
+                    </div>
+                    <hr>
+                    <div class="row g-2 mb-2">
+                        <div class="col-6"><input type="text" class="form-control form-control-sm" name="make" placeholder="Marka" required></div>
+                        <div class="col-6"><input type="text" class="form-control form-control-sm" name="model" placeholder="Model" required></div>
+                    </div>
+                    <div class="mb-3">
+                        <input type="text" class="form-control form-control-sm" name="license_plate" placeholder="Nr. Rejestracyjny" required>
+                    </div>
+                    <button type="submit" class="btn btn-success btn-sm w-100">Zarejestruj w Bazie</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Tworzenie pop-upów dla formularzy -->
+{% for o in orders %}
+<div class="modal fade" id="editModal{{o.id}}" tabindex="-1" aria-labelledby="editModalLabel{{o.id}}" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <form action="{{ url_for('reception.edit_order_desc', order_id=o.id) }}" method="POST" class="modal-content border-0 shadow">
+            <div class="modal-header bg-light border-0">
+                <h5 class="modal-title fw-bold text-primary" id="editModalLabel{{o.id}}"><i class="bi bi-pencil-square me-2"></i>Edycja Zlecenia #{{ o.id }}</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-4">
+                <div class="mb-3">
+                    <label class="form-label text-muted small fw-semibold">Aktualizuj Opis Zgłoszenia / Notatkę</label>
+                    <textarea class="form-control" name="description" rows="4" required>{{ o.description }}</textarea>
+                </div>
+            </div>
+            <div class="modal-footer bg-light border-0">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Anuluj</button>
+                <button type="submit" class="btn btn-primary px-4">Zapisz Zmiany</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endfor %}
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const clientSelect = document.getElementById('clientSelect');
+        const vehicleSelect = document.getElementById('vehicleSelect');
+        const allVehicleOptions = Array.from(vehicleSelect.querySelectorAll('option[data-owner]'));
+        
+        clientSelect.addEventListener('change', function() {
+            const clientId = this.value;
+            vehicleSelect.innerHTML = '<option value="">-- Wybierz pojazd --</option>';
+            
+            if (clientId) {
+                vehicleSelect.disabled = false;
+                const clientVehicles = allVehicleOptions.filter(opt => opt.getAttribute('data-owner') === clientId);
+                
+                if (clientVehicles.length > 0) {
+                    clientVehicles.forEach(opt => vehicleSelect.appendChild(opt.cloneNode(true)));
+                } else {
+                    vehicleSelect.innerHTML = '<option value="">(Klient nie ma dodanych aut)</option>';
+                }
+            } else {
+                vehicleSelect.disabled = true;
+                vehicleSelect.innerHTML = '<option value="">-- Najpierw wybierz klienta --</option>';
+            }
+        });
+    });
+</script>
+{% endblock %}

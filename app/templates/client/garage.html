@@ -1,0 +1,178 @@
+{% extends 'base.html' %}
+{% block title %}Moje Pojazdy{% endblock %}
+{% block content %}
+<div class="row mb-4">
+    <div class="col d-flex justify-content-between align-items-center">
+        <h2 class="fw-bold"><i class="bi bi-car-front-fill me-2 text-primary"></i>Pojazdy</h2>
+        <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addVehicleModal">Dodaj Pojazd</button>
+    </div>
+</div>
+<div class="row">
+    <div class="col-md-8">
+        <div class="row">
+            {% for v in vehicles %}
+            <div class="col-md-6 mb-3">
+                <div class="card shadow-sm border-0 h-100">
+                    <div class="card-body p-4">
+                        <h5 class="fw-bold">{{ v.make }} {{ v.model }}</h5>
+                        <p class="text-muted small mb-3">Rejestracja: {{ v.license_plate }}</p>
+                        <div class="d-flex gap-2">
+                            <button class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#bookModal{{v.id}}">Zleć Naprawę</button>
+                            <form action="{{ url_for('client.delete_vehicle', vehicle_id=v.id) }}" method="POST" onsubmit="return confirm('Usunąć pojazd?');">
+                                <button type="submit" class="btn btn-sm btn-outline-danger">Usuń</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- modul od bookowania wizyty -->
+            <div class="modal fade" id="bookModal{{v.id}}" tabindex="-1">
+                <div class="modal-dialog">
+                    <div class="modal-content">
+                        <div class="modal-header border-0">
+                            <h5 class="modal-title fw-bold">Zleć Naprawę: {{ v.make }}</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                        </div>
+                        <div class="modal-body">
+                            <form action="{{ url_for('client.book_appointment') }}" method="POST">
+                                <input type="hidden" name="vehicle_id" value="{{ v.id }}">
+                                <div class="mb-3">
+                                    <label class="form-label text-muted small">Opis probelmu</label>
+                                    <textarea class="form-control" name="description" rows="4" required></textarea>
+                                </div>
+                                <button type="submit" class="btn btn-primary w-100">Prześlij Zgłoszenie</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% else %}
+            <div class="col-12 text-center text-muted py-5">Brak aut w garażu. Dodaj pierwszy pojazd!</div>
+            {% endfor %}
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card shadow-sm border-0">
+            <div class="card-header bg-white pt-4 border-0"><h5 class="fw-bold">Historia Zleceń</h5></div>
+            <div class="card-body">
+                <ul class="list-group list-group-flush">
+                    {% for o in orders %}
+                    <li class="list-group-item px-0 py-3">
+                        <div class="d-flex justify-content-between align-items-start">
+                            <div>
+                                <h6 class="fw-bold mb-1">{{ o.vehicle.make }} - Zlecenie #{{ o.id }}</h6>
+                                <p class="text-muted small mb-0">{{ o.created_at.strftime('%Y-%m-%d') }}</p>
+                            </div>
+                            <span class="badge bg-secondary">{{ o.status }}</span>
+                        </div>
+                        <div class="mt-2">
+                            <button class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#detailsModal{{o.id}}"><i class="bi bi-info-circle me-1"></i>Szczegóły</button>
+                            {% if o.status in ['gotowe', 'odebrane'] %}
+                            <a href="{{ url_for('reception.generate_invoice', order_id=o.id) }}" class="btn btn-sm btn-success"><i class="bi bi-file-earmark-pdf me-1"></i>Pobierz FV</a>
+                            {% endif %}
+                        </div>
+                    </li>
+                    {% else %}
+                    <li class="list-group-item px-0 text-muted">Brak historii.</li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="addVehicleModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header border-0"><h5 class="modal-title fw-bold">Dodaj Auto</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+            <div class="modal-body">
+                <form action="{{ url_for('client.add_vehicle') }}" method="POST">
+                    <div class="mb-3"><label class="form-label">Marka</label><input type="text" class="form-control" name="make" required></div>
+                    <div class="mb-3"><label class="form-label">Model</label><input type="text" class="form-control" name="model" required></div>
+                    <div class="mb-3"><label class="form-label">Tablica</label><input type="text" class="form-control" name="license_plate" required></div>
+                    <button type="submit" class="btn btn-primary w-100">Zapisz Pojazd</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% for o in orders %}
+<!-- Modul od szczegółów zleceinia -->
+<div class="modal fade" id="detailsModal{{o.id}}" tabindex="-1">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content border-0 shadow">
+            <div class="modal-header bg-light border-0">
+                <h5 class="modal-title fw-bold text-primary">Szczegóły Zlecenia #{{ o.id }}</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body p-4">
+                <div class="row mb-4">
+                    <div class="col-sm-6">
+                        <p class="text-muted small mb-1">Pojazd</p>
+                        <h6 class="fw-bold">{{ o.vehicle.make }} {{ o.vehicle.model }} ({{ o.vehicle.license_plate }})</h6>
+                    </div>
+                    <div class="col-sm-6 text-sm-end">
+                        <p class="text-muted small mb-1">Data Zlecenia</p>
+                        <h6 class="fw-bold">{{ o.created_at.strftime('%Y-%m-%d %H:%M') }}</h6>
+                    </div>
+                </div>
+                
+                <h6 class="fw-bold text-muted border-bottom pb-2 mb-3">Opis i Notatki Serwisowe</h6>
+                <p class="bg-light p-3 rounded small">{{ o.description }}</p>
+                {% if o.notes %}
+                <ul class="list-group list-group-flush mb-4">
+                    {% for note in o.notes %}
+                    <li class="list-group-item small px-0 bg-transparent text-muted"><i class="bi bi-journal-text me-2"></i>{{ note.content }}</li>
+                    {% endfor %}
+                </ul>
+                {% endif %}
+                
+                <div class="row mt-4">
+                    <div class="col-md-6">
+                        <h6 class="fw-bold text-muted border-bottom pb-2 mb-3">Wykonane Usługi</h6>
+                        {% if o.services_used %}
+                            <ul class="list-unstyled small">
+                            {% for svc in o.services_used %}
+                            <li class="d-flex justify-content-between mb-1"><span>{{ svc.service.name }}</span> <span class="fw-bold">{{ svc.price_applied }} PLN</span></li>
+                            {% endfor %}
+                            </ul>
+                        {% else %}
+                            <p class="small text-muted">Brak wpisanych usług.</p>
+                        {% endif %}
+                    </div>
+                    <div class="col-md-6">
+                        <h6 class="fw-bold text-muted border-bottom pb-2 mb-3">Zużyte Części</h6>
+                        {% if o.parts_used %}
+                            <ul class="list-unstyled small">
+                            {% for part in o.parts_used %}
+                            <li class="d-flex justify-content-between mb-1"><span>{{ part.quantity }}x {{ part.part.name }}</span> <span class="fw-bold">{{ (part.quantity * part.unit_price)|round(2) }} PLN</span></li>
+                            {% endfor %}
+                            </ul>
+                        {% else %}
+                            <p class="small text-muted">Brak wpisanych części.</p>
+                        {% endif %}
+                    </div>
+                </div>
+                
+                {% set total_cost = dict(val=0) %}
+                {% for svc in o.services_used %}
+                    {% if total_cost.update({'val': total_cost.val + svc.price_applied}) %}{% endif %}
+                {% endfor %}
+                {% for part in o.parts_used %}
+                    {% if total_cost.update({'val': total_cost.val + (part.quantity * part.unit_price)}) %}{% endif %}
+                {% endfor %}
+                
+                <div class="text-end mt-4 pt-3 border-top">
+                    <h5 class="fw-bold mb-0">Całkowity Koszt: <span class="text-primary">{{ total_cost.val|round(2) }} PLN</span></h5>
+                </div>
+            </div>
+            <div class="modal-footer border-0">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Zamknij</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endfor %}
+
+{% endblock %}

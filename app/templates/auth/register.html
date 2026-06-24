@@ -1,0 +1,38 @@
+{% extends 'base.html' %}
+{% block title %}Rejestracja{% endblock %}
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <div class="card shadow-sm border-0">
+            <div class="card-body p-4 p-md-5">
+                <h3 class="fw-bold mb-4 text-center">Rejestracja</h3>
+                <form method="POST" action="{{ url_for('auth.register') }}">
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label text-muted small">Imię</label>
+                            <input type="text" class="form-control" name="first_name" required>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label text-muted small">Nazwisko</label>
+                            <input type="text" class="form-control" name="last_name" required>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label text-muted small">E-mail</label>
+                        <input type="email" class="form-control" name="email" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label text-muted small">Login</label>
+                        <input type="text" class="form-control" name="username" required>
+                    </div>
+                    <div class="mb-4">
+                        <label class="form-label text-muted small">Hasło</label>
+                        <input type="password" class="form-control" name="password" required>
+                    </div>
+                    <button type="submit" class="btn btn-primary w-100 py-2">Załóż konto</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

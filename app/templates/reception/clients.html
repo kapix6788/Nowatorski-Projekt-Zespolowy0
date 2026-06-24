@@ -1,0 +1,20 @@
+{% extends 'base.html' %}
+{% block title %}Baza Klientów{% endblock %}
+{% block content %}
+<h2 class="fw-bold mb-4">Baza Klientów Serwisu</h2>
+<div class="card shadow-sm border-0">
+    <div class="card-body p-4">
+        <ul class="list-group">
+            {% for c in clients %}
+            <li class="list-group-item d-flex justify-content-between align-items-center">
+                <div>
+                    <h5 class="fw-bold mb-0">{{ c.first_name }} {{ c.last_name }}</h5>
+                    <small class="text-muted">{{ c.email }} • Tel: N/A</small>
+                </div>
+                <span class="badge bg-secondary rounded-pill">Pojazdów: {{ c.vehicles|length }}</span>
+            </li>
+            {% endfor %}
+        </ul>
+    </div>
+</div>
+{% endblock %}
