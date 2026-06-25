@@ -1,0 +1,27 @@
+{% extends 'base.html' %}
+{% block title %}Moje Zlecenia{% endblock %}
+{% block content %}
+<h2 class="fw-bold mb-4">Zlecenia Serwisowe</h2>
+<div class="row">
+    {% for o in orders %}
+    <div class="col-md-4 mb-4">
+        <div class="card shadow-sm border-top border-primary border-3 h-100">
+            <div class="card-body p-4">
+                <div class="d-flex justify-content-between">
+                    <h5 class="fw-bold">{{ o.vehicle.make }} {{ o.vehicle.model }}</h5>
+                    <span class="badge bg-light text-dark">#{{ o.id }}</span>
+                </div>
+                <p class="text-muted small mb-3">Rej: {{ o.vehicle.license_plate }}</p>
+                <div class="p-2 bg-light rounded text-muted small mb-3" style="max-height: 80px; overflow:hidden;">{{ o.description[:100] }}...</div>
+                <div class="d-flex justify-content-between align-items-center mt-auto">
+                    <span class="badge bg-secondary">{{ o.status }}</span>
+                    <a href="{{ url_for('mechanic.order_details', order_id=o.id) }}" class="btn btn-sm btn-primary">Obsługa Zlecenia</a>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% else %}
+    <div class="col text-center text-muted py-5">Brak przypisanych zleceń na ten moment.</div>
+    {% endfor %}
+</div>
+{% endblock %}
