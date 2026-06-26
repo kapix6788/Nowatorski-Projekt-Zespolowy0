@@ -42,11 +42,11 @@ def seed_users():
         if Part.query.first() is None:
             print("Testowe części w magazynie")
             parts_data = [
-                Part(name='Klocki hamulcowe przód (Bosh)', part_number='BOS-1234', price=150.00, stock_quantity=12),
-                Part(name='Tarcza hamulcowa wentylowana', part_number='TRW-998', price=210.00, stock_quantity=4),
-                Part(name='Olej silnikowy 5W-30 5L (Castrol)', part_number='CAS-5W30', price=180.00, stock_quantity=20),
-                Part(name='Filtr oleju (Filtron)', part_number='FIL-001', price=35.00, stock_quantity=15),
-                Part(name='Uszczelka pod głowice (Erling)', part_number='ERL-888', price=120.00, stock_quantity=0)
+                Part(name='Klocki hamulcowe przód (Bosh)', part_number='BOS-1234', unit_price=150.00, stock_quantity=12),
+                Part(name='Tarcza hamulcowa wentylowana', part_number='TRW-998', unit_price=210.00, stock_quantity=4),
+                Part(name='Olej silnikowy 5W-30 5L (Castrol)', part_number='CAS-5W30', unit_price=180.00, stock_quantity=20),
+                Part(name='Filtr oleju (Filtron)', part_number='FIL-001', unit_price=35.00, stock_quantity=15),
+                Part(name='Uszczelka pod głowice (Erling)', part_number='ERL-888', unit_price=120.00, stock_quantity=0)
                 # Brak na stanie
             ]
             db.session.add_all(parts_data)
@@ -54,3 +54,4 @@ def seed_users():
 
 
 if __name__ == '__main__':
+    seed_users()
